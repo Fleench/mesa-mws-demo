@@ -11,15 +11,40 @@ if [ ! -f /app/store/mws.db ]; then
   npx mws init-store
 fi
 
-# 3. THE HACKER BRIDGE (Fixed for IPv6 mismatch causing 502)
-# Render assigns a public port (usually 10000). We save it safely.
+# 3. Create a custom "Smart Bridge" to fix the 502 Cold Start bug
+cat << 'EOF' > /app/bridge.js
+const net = require('net');
+const RENDER_PORT = process.env.RENDER_PORT || 10000;
+
+const server = net.createServer((c) => {
+    let retries = 0;
+    const connect = (host) => {
+        const m = net.connect({ port: 8080, host: host }, () => {
+            c.pipe(m); m.pipe(c);
+        });
+        m.on('error', () => {
+            // If MWS isn't awake yet, wait 1 second and knock again (up to 15 seconds)
+            if (retries < 15) {
+                retries++;
+                setTimeout(() => connect(host), 1000);
+            } else if (host === '::1') {
+                retries = 0;
+                connect('127.0.0.1'); // Fallback to IPv4
+            } else {
+                c.end(); // Finally give up
+            }
+        });
+    };
+    connect('::1');
+    c.on('error', () => {});
+});
+server.listen(RENDER_PORT, '0.0.0.0', () => console.log('Smart Bridge Active. Holding traffic until MWS boots...'));
+EOF
+
+# 4. Start the Smart Bridge
 export RENDER_PORT=${PORT:-10000}
-
-# We force MWS to run on an internal port (8080) so there are no port conflicts.
 export PORT=8080
+node /app/bridge.js &
 
-# Start socat in the background to pipe Render's public IPv4 traffic into MWS's secure IPv6 bubble.
-socat TCP4-LISTEN:${RENDER_PORT},fork,bind=0.0.0.0 TCP6:[::1]:8080 &
-
-# 4. Boot using the official start script
+# 5. Boot using the official start script
 exec litestream replicate -exec "npm start"
