@@ -3,8 +3,8 @@ FROM node:20-slim
 # Hide the URL in a variable so auto-linkers don't break the build script
 ENV LS_URL="https://github.com/benbjohnson/litestream/releases/download/v0.3.13/litestream-v0.3.13-linux-amd64.tar.gz"
 
-# Install litestream for SQLite database syncing
-RUN apt-get update && apt-get install -y curl ca-certificates sqlite3 && \
+# ADDED 'socat' to the installation list!
+RUN apt-get update && apt-get install -y curl ca-certificates sqlite3 socat && \
     curl -L $LS_URL | tar -xz -C /usr/local/bin
 
 # Initialize MWS. This automatically creates the /app folder AND installs the packages!
