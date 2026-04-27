@@ -11,9 +11,9 @@ if [ ! -f /app/store/mws.db ]; then
   npx mws init-store
 fi
 
-# 3. Tell MWS how to connect via Environment Variables
+# 3. Tell the Node.js server to bind to Render's public network
 export HOST=0.0.0.0
 export PORT=${PORT:-8080}
 
-# 4. Start Litestream replication and boot MWS (no flags needed!)
-exec litestream replicate -exec "npx mws listen"
+# 4. Boot using the official start script scaffolded by MWS
+exec litestream replicate -exec "npm start"
