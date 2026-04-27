@@ -11,5 +11,9 @@ if [ ! -f /app/store/mws.db ]; then
   npx mws init-store
 fi
 
-# 3. Start Litestream replication in the background, then boot MWS
-exec litestream replicate -exec "npx mws listen --host 0.0.0.0 --port ${PORT:-8080}"
+# 3. Tell MWS how to connect via Environment Variables
+export HOST=0.0.0.0
+export PORT=${PORT:-8080}
+
+# 4. Start Litestream replication and boot MWS (no flags needed!)
+exec litestream replicate -exec "npx mws listen"
