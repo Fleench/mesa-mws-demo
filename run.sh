@@ -3,7 +3,7 @@ set -e
 
 mkdir -p /app/store
 
-# 1. Restore the database from Cloudflare R2 (if it exists)
+# 1. Restore the database from Cloudflare R2
 litestream restore -if-db-not-exists -if-replica-exists /app/store/mws.db
 
 # 2. Initialize the MWS store if this is a brand new deployment
@@ -11,9 +11,15 @@ if [ ! -f /app/store/mws.db ]; then
   npx mws init-store
 fi
 
-# 3. Tell the Node.js server to bind to Render's public network
-export HOST=0.0.0.0
-export PORT=${PORT:-8080}
+# 3. THE HACKER BRIDGE
+# Render assigns a public port (usually 10000). We save it safely.
+export RENDER_PORT=${PORT:-10000}
 
-# 4. Boot using the official start script scaffolded by MWS
+# We force MWS to run on an internal port (8080) so there are no port conflicts.
+export PORT=8080
+
+# Start socat in the background to pipe Render's public traffic into MWS's secure bubble.
+socat TCP4-LISTEN:${RENDER_PORT},fork,bind=0.0.0.0 TCP:localhost:8080 &
+
+# 4. Boot using the official start script
 exec litestream replicate -exec "npm start"
