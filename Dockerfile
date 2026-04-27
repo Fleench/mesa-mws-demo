@@ -2,7 +2,7 @@ FROM node:20-slim
 
 # Install litestream for SQLite database syncing
 RUN apt-get update && apt-get install -y curl ca-certificates sqlite3 && \
-    curl -L [https://github.com/benbjohnson/litestream/releases/download/v0.3.13/litestream-v0.3.13-linux-amd64.tar.gz](https://github.com/benbjohnson/litestream/releases/download/v0.3.13/litestream-v0.3.13-linux-amd64.tar.gz) | tar -xz -C /usr/local/bin
+    curl -L https://github.com/benbjohnson/litestream/releases/download/v0.3.13/litestream-v0.3.13-linux-amd64.tar.gz | tar -xz -C /usr/local/bin
 
 WORKDIR /app
 
