@@ -4,5 +4,5 @@ secret-access-key: ${LITESTREAM_SECRET_ACCESS_KEY}
 dbs:
   - path: /app/store/mws.db
     replicas:
-      - url: s3://${R2_BUCKET_NAME}.r2.cloudflarestorage.com/mws-backup
+      - url: s3://${R2_BUCKET_NAME}/mws-backup
         endpoint: https://${CLOUDFLARE_ACCOUNT_ID}.r2.cloudflarestorage.com
